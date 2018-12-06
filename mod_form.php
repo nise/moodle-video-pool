@@ -6,7 +6,7 @@
  * visit: http://docs.moodle.org/en/Development:lib/formslib.php
  *
  * @package    mod_videofile
- * @copyright  2013 Jonas Nockert <jonasnockert@gmail.com>, 2018 Niels Seidel <niels.seidel@nise81.com>
+ * @copyright  2013 Jonas Nockert <jonasnockert@gmail.com>,  2018 Niels Seidel, info@social-machinables.com
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -166,7 +166,7 @@ class mod_videofile_mod_form extends moodleform_mod {
         $mform->setType('coverage', PARAM_TEXT);
 
         // rights. xxx
-        $mform->addElement('text', 'right', get_string('rights', 'videofile'), array('size' => 30));
+        $mform->addElement('text', 'rights', get_string('rights', 'videofile'), array('size' => 30));
         $mform->setType('rights', PARAM_TEXT);
 
         // license.
@@ -212,7 +212,7 @@ class mod_videofile_mod_form extends moodleform_mod {
         $options = array(
             'movement' => "Bewegen und Handeln",
             'reflexion' => "Reflektieren und Urteilen",
-            'intercation' => "Interagieren",
+            'interaction' => "Interagieren",
             'methods' => "Methoden anwenden"
         );
         $mform->addElement('select', 'compentencies', get_string('compentencies', 'videofile'), $options);

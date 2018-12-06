@@ -129,14 +129,26 @@ class videofile {
         $add->institution = $formdata->institution;
         $add->tags = $formdata->tags;
         
-        $add->compentencies = $formdata->compentencies;
-        $add->courselevel = $formdata->courselevel;
+        $add->compentencies = implode(",",$formdata->compentencies);
+        $add->courselevel = implode(",",$formdata->courselevel);
         $add->sports = $formdata->sports;
         $add->movements = $formdata->movements;
-        $add->activities = $formdata->activities;
+        $add->activities = implode(",",$formdata->activities);
         $add->actors = $formdata->actors;
-        $add->perspectives = $formdata->perspectives;
+        $add->perspectives = implode(",",$formdata->perspectives);
         $add->location = $formdata->location;
+
+        /* TODO
+        Notice: Undefined property: stdClass::$type in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 115
+
+Notice: Undefined property: stdClass::$rights in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 122
+
+Notice: Undefined property: stdClass::$length in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 125
+
+Notice: Undefined property: stdClass::$size in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 126
+
+Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 128
+        */
 
         // save the file
             file_save_draft_area_files(
@@ -284,13 +296,13 @@ class videofile {
         $update->institution = $formdata->institution;
         $update->tags = $formdata->tags;
         
-        $update->compentencies = $formdata->compentencies;
-        $update->courselevel = $formdata->courselevel;
+        $update->compentencies = implode(",",$formdata->compentencies);
+        $update->courselevel = implode(",",$formdata->courselevel);
         $update->sports = $formdata->sports;
         $update->movements = $formdata->movements;
-        $update->activities = $formdata->activities;
+        $update->activities = implode(",",$formdata->activities);
         $update->actors = $formdata->actors;
-        $update->perspectives = $formdata->perspectives;
+        $update->perspectives = implode(",",$formdata->perspectives);
         $update->location = $formdata->location;
 
         $result = $DB->update_record('videofile', $update);
