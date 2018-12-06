@@ -127,7 +127,9 @@ class videofile {
         $add->license = $formdata->license;
         $add->poster = $formdata->poster;
         $add->institution = $formdata->institution;
-        $add->tags = $formdata->tags;
+        $comma = array(", ", ", ");
+        $cleantags = str_replace($comma, ",", $formdata->videotags);
+        $add->tags = $cleantags;
         
         $add->compentencies = implode(",",$formdata->compentencies);
         $add->courselevel = implode(",",$formdata->courselevel);
@@ -294,7 +296,9 @@ Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/
         $update->license = $formdata->license;
         $update->poster = $formdata->poster;
         $update->institution = $formdata->institution;
-        $update->tags = $formdata->tags;
+        $comma = array(", ", ", ");
+        $cleantags = str_replace($comma, ",", $formdata->videotags);
+        $update->tags = $cleantags;
         
         $update->compentencies = implode(",",$formdata->compentencies);
         $update->courselevel = implode(",",$formdata->courselevel);

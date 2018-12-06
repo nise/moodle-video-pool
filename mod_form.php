@@ -183,12 +183,9 @@ class mod_videofile_mod_form extends moodleform_mod {
         $mform->addElement('text', 'institution', get_string('institution', 'videofile'), array('size' => 30));
         $mform->setType('institution', PARAM_TEXT);
 
-        // tags.
-        //$mform->addElement('text', 'tags', get_string('tags', 'videofile'), array('size' => 4));
-        //$mform->setType('tags', PARAM_TEXT);
-
-
-
+        // videotags.
+        $mform->addElement('text', 'videotags', get_string('videotags', 'videofile'), array('size' => 4));
+        $mform->setType('videotags', PARAM_TEXT);
 
         // Video fields.
         $mform->addElement('header','fieldsetdidactic',get_string('fieldsetdidactic', 'videofile'));
@@ -205,9 +202,7 @@ class mod_videofile_mod_form extends moodleform_mod {
         );
         $mform->addElement('select', 'sports', get_string('sports', 'videofile'), $options);
         $mform->getElement('sports')->setMultiple(false);
-        //$mform->getElement('sports')->setSelected(array('val1', 'val2'));
-
-
+       
         // competencies
         $options = array(
             'movement' => "Bewegen und Handeln",
@@ -217,11 +212,7 @@ class mod_videofile_mod_form extends moodleform_mod {
         );
         $mform->addElement('select', 'compentencies', get_string('compentencies', 'videofile'), $options);
         $mform->getElement('compentencies')->setMultiple(true);
-        //if(isset($CFG->videofile_compentencies)){
-           // $mform->setDefault('compentencies', $onfig->compentencies);
-        //}
-        file_put_contents('php://stderr', print_r($config, TRUE));
-
+       
         // courselevel
         $options = array(
             'eingangsstufe' =>  "Eingangsstufe",
