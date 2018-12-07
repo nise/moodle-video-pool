@@ -44,6 +44,8 @@ class mod_videofile_mod_form extends moodleform_mod {
                         'client');
         $this->standard_intro_elements(false);
 
+        
+
         // Video fields.
         $mform->addElement('header',
                            'video_fieldset',
