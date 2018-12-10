@@ -126,7 +126,6 @@ class mod_videofile_mod_form extends moodleform_mod {
 
 
 
-        
         // Dublin Core fields.
         $mform->addElement('header','fielddubline', get_string('fieldsetdc', 'videofile'));
         $mform->setExpanded('fielddubline');
