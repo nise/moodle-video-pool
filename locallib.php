@@ -115,21 +115,39 @@ class videofile {
         $comma = array(", ", ", ");
         $cleantags = str_replace($comma, ",", $formdata->videotags);
         $add->tags = $cleantags;
-        
-        $add->compentencies = implode(",",$formdata->compentencies);
-        $add->courselevel = implode(",",$formdata->courselevel);
         $add->sports = $formdata->sports;
-        $add->movements = $formdata->movements;
-        $add->activities = implode(",",$formdata->activities);
         $add->actors = $formdata->actors;
-        $add->perspectives = implode(",",$formdata->perspectives);
+        $add->movements = $formdata->movements;
         $add->location = $formdata->location;
+        
+        //$add->compentencies = implode(",",$formdata->compentencies);
+        if(isset($formdata->compentencies) && sizeof($formdata->compentencies) > 0){
+            $add->compentencies = implode(",",$formdata->compentencies);
+        }else{
+            $add->compentencies = '';
+        }
+        //$add->courselevel = implode(",",$formdata->courselevel);
+        if(isset($formdata->courselevel) && sizeof($formdata->courselevel) > 0){
+            $add->courselevel = implode(",",$formdata->courselevel);
+        }else{
+            $add->courselevel = '';
+        }
+        //$add->activities = implode(",",$formdata->activities);
+         if(isset($formdata->activities) && sizeof($formdata->activities) > 0){
+            $add->activities = implode(",",$formdata->activities);
+        }else{
+            $add->activities = '';
+        }
+        //$add->perspectives = implode(",",$formdata->perspectives);
+         if(isset($formdata->perspectives) && sizeof($formdata->perspectives) > 0){
+            $add->perspectives = implode(",",$formdata->perspectives);
+        }else{
+            $add->perspectives = '';
+        }
+        
 
         /* TODO
-        Notice: Undefined property: stdClass::$type in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 115
-
-Notice: Undefined property: stdClass::$rights in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 122
-
+    
 Notice: Undefined property: stdClass::$length in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 125
 
 Notice: Undefined property: stdClass::$size in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 126
@@ -138,18 +156,15 @@ Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/
         */
 
         // save the file
-            file_save_draft_area_files(
-                $formdata->videos,
-                $this->context->id,
-                'mod_videofile',
-                'videos',
-                0
-            );
+        file_save_draft_area_files(
+            $formdata->videos,
+            $this->context->id,
+            'mod_videofile',
+            'videos',
+            0
+        );
 
-        
-        
         $fs = get_file_storage();    
-        // get the file
         $videos = $fs->get_area_files($this->context->id,
                                    'mod_videofile',
                                    'videos',
@@ -160,9 +175,22 @@ Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/
         foreach ($videos as $file) {
             if ($mimetype = $file->get_mimetype()) {
                 $videourl = $this->util_get_file_url($file);
+                $filesize = filesize($file->get_filepath().$file->get_filename());
+                /*
+                $file->get_contextid(),
+            $file->get_component(),
+            $file->get_filearea(),
+            $file->get_itemid(),
+            $file->get_filepath(),
+            $file->get_filename(), 
+                */
             }
         } 
         $videourl = $this->util_get_file_url($file);
+
+        file_put_contents('php://stderr', 'rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr__');
+        file_put_contents('php://stderr', print_r($filesize,true));
+        file_put_contents('php://stderr', '__rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
         
         //ba54311727606e1003ec329896154ed444997638
         // http://localhost/moodle/pluginfile.php/31/mod_videofile/videos/0/video1.mp4
@@ -171,8 +199,10 @@ Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/
        
         $add->url = '/moodle/pluginfile.php' . $this->accessProtected($videourl, 'slashargument');
         $add->filename = $add->url;
-        //file_put_contents('php://stderr', print_r($videourl, TRUE));
-        file_put_contents('php://stderr', print_r($formdata->compentencies, TRUE));
+        $add->type = 'video';
+        $add->mimetype = $mimetype;
+       // file_put_contents('php://stderr', print_r($videourl, TRUE));
+        
         
         $returnid = $DB->insert_record('videofile', $add);
         $this->instance = $DB->get_record('videofile',
@@ -287,15 +317,35 @@ Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/
         $comma = array(", ", ", ");
         $cleantags = str_replace($comma, ",", $formdata->videotags);
         $update->tags = $cleantags;
-        
-        $update->compentencies = implode(",",$formdata->compentencies);
-        $update->courselevel = implode(",",$formdata->courselevel);
+        $update->actors = $formdata->actors;
         $update->sports = $formdata->sports;
         $update->movements = $formdata->movements;
-        $update->activities = implode(",",$formdata->activities);
-        $update->actors = $formdata->actors;
-        $update->perspectives = implode(",",$formdata->perspectives);
         $update->location = $formdata->location;
+
+        //$add->compentencies = implode(",",$formdata->compentencies);
+        if(isset($formdata->compentencies) && sizeof($formdata->compentencies) > 0){
+            $update->compentencies = implode(",",$formdata->compentencies);
+        }else{
+            $update->compentencies = '';
+        }
+        //$add->courselevel = implode(",",$formdata->courselevel);
+        if(isset($formdata->courselevel) && sizeof($formdata->courselevel) > 0){
+            $update->courselevel = implode(",",$formdata->courselevel);
+        }else{
+            $update->courselevel = '';
+        }
+        //$add->activities = implode(",",$formdata->activities);
+         if(isset($formdata->activities) && sizeof($formdata->activities) > 0){
+            $update->activities = implode(",",$formdata->activities);
+        }else{
+            $update->activities = '';
+        }
+        //$add->perspectives = implode(",",$formdata->perspectives);
+         if(isset($formdata->perspectives) && sizeof($formdata->perspectives) > 0){
+            $update->perspectives = implode(",",$formdata->perspectives);
+        }else{
+            $update->perspectives = '';
+        }
 
         $result = $DB->update_record('videofile', $update);
         $this->instance = $DB->get_record('videofile',
