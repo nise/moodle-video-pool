@@ -53,10 +53,11 @@ class videofile {
      */
     public function __construct($coursemodulecontext, $coursemodule, $course) {
         global $PAGE;
-
+        global $CFG;
         $this->context = $coursemodulecontext;
         $this->coursemodule = $coursemodule;
         $this->course = $course;
+        $this->TMP_DIR = $CFG->dataroot;
     }
 
     /**
@@ -77,6 +78,10 @@ class videofile {
     public function add_instance(stdClass $formdata) {
         global $DB;
 
+        file_put_contents('php://stderr', 'rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr__');
+        file_put_contents('php://stderr', $formdata->posters);
+        file_put_contents('php://stderr', '__rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
+       
         // Add the database record.
         $add = new stdClass();
         $add->name = $formdata->name;
@@ -97,8 +102,7 @@ class videofile {
         $add->publisher = $formdata->publisher;
         $add->contributor = $formdata->contributor;
         $add->date = $formdata->date;
-        $add->type = $formdata->type;
-        $add->mimetype = 'video/mp4';//$formdata->mimetype;
+        
         $add->format = 'video';//$formdata->format;
         $add->source = $formdata->source;
         $add->language = $formdata->language;
@@ -106,11 +110,7 @@ class videofile {
         $add->coverage = $formdata->coverage;
         $add->rights = $formdata->rights;
         
-        //$add->filename = $url;
-        $add->length = $formdata->length;
-        $add->size = $formdata->size;
         $add->license = $formdata->license;
-        $add->poster = $formdata->poster;
         $add->institution = $formdata->institution;
         $comma = array(", ", ", ");
         $cleantags = str_replace($comma, ",", $formdata->videotags);
@@ -145,16 +145,6 @@ class videofile {
             $add->perspectives = '';
         }
         
-
-        /* TODO
-    
-Notice: Undefined property: stdClass::$length in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 125
-
-Notice: Undefined property: stdClass::$size in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 126
-
-Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/mod/videofile/locallib.php on line 128
-        */
-
         // save the file
         file_save_draft_area_files(
             $formdata->videos,
@@ -175,34 +165,37 @@ Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/
         foreach ($videos as $file) {
             if ($mimetype = $file->get_mimetype()) {
                 $videourl = $this->util_get_file_url($file);
-                $filesize = filesize($file->get_filepath().$file->get_filename());
-                /*
-                $file->get_contextid(),
-            $file->get_component(),
-            $file->get_filearea(),
-            $file->get_itemid(),
-            $file->get_filepath(),
-            $file->get_filename(), 
-                */
+                $fileinfo = array(
+                    'component' => $file->get_component(),     // usually = table name
+                    'filearea' => $file->get_filearea(),     // usually = table name
+                    'itemid' => $file->get_itemid(),               // usually = ID of row in table
+                    'contextid' => $file->get_contextid(), // ID of context
+                    'filepath' => $file->get_filepath(),           // any path beginning and ending in /
+                    'filename' => $file->get_filename() // any filename
+                    );
+                $videourl = $this->util_get_file_url($file);
+                $add->url = '/moodle/pluginfile.php' . $this->accessProtected($videourl, 'slashargument');
+                $add->filename = $add->url;
+                $add->type = 'video';
+                $add->mimetype = $mimetype;  
             }
         } 
-        $videourl = $this->util_get_file_url($file);
-
-        file_put_contents('php://stderr', 'rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr__');
-        file_put_contents('php://stderr', print_r($filesize,true));
-        file_put_contents('php://stderr', '__rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
         
-        //ba54311727606e1003ec329896154ed444997638
-        // http://localhost/moodle/pluginfile.php/31/mod_videofile/videos/0/video1.mp4
+        // Get file
+        $file = $fs->get_file($fileinfo['contextid'], $fileinfo['component'], $fileinfo['filearea'],
+                            $fileinfo['itemid'], $fileinfo['filepath'], $fileinfo['filename']);
         
-        
-       
-        $add->url = '/moodle/pluginfile.php' . $this->accessProtected($videourl, 'slashargument');
-        $add->filename = $add->url;
-        $add->type = 'video';
-        $add->mimetype = $mimetype;
-       // file_put_contents('php://stderr', print_r($videourl, TRUE));
-        
+        // Read contents
+        if ($file) {   
+            $target_path =  $this->TMP_DIR . '/'.$file->get_filename();
+            $file->copy_content_to($target_path);
+            $filesize = filesize($target_path);
+            $add->size = $filesize;
+            $add->length = $this->getVideoDuration($target_path);
+            //$add->posters = $this->extractImages( $target_path, $add->length, 3, str_replace('.mp4', '', $file->get_filename()) );
+        } else {
+            // file doesn't exist - do something
+        }
         
         $returnid = $DB->insert_record('videofile', $add);
         $this->instance = $DB->get_record('videofile',
@@ -210,6 +203,17 @@ Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/
                                           '*',
                                           MUST_EXIST);
         
+        // store poster.
+        $draftitemid = 0;//$formdata->posters;
+        if ($draftitemid) {
+            file_save_draft_area_files(
+                $draftitemid,
+                $this->context->id,
+                'mod_videofile',
+                'posters',
+                0
+            );
+        }
 
         // Cache the course record.
         $this->course = $DB->get_record('course',
@@ -237,6 +241,82 @@ Notice: Undefined property: stdClass::$poster in /home/abb/Documents/www/moodle/
             $file->get_filepath(),
             $file->get_filename(),
             false);
+    }
+
+
+    /**
+     * Determines the video duration
+     */
+    function getVideoDuration($filename){
+        require_once 'vendor/autoload.php'; 
+        $ffprobe = FFMpeg\FFProbe::create(); 
+        return round( $ffprobe->format( $filename )->get('duration') );
+    }
+
+    /**
+     * Extracts a given number of still images from a video
+     */
+    function extractImages( $videofile, $duration, $n, $name ){
+        require_once 'vendor/autoload.php'; 
+        $ffmpeg = FFMpeg\FFMpeg::create(array(
+            'ffmpeg.binaries'  => '/usr/bin/ffmpeg',//$this->config['ffmpeg'],
+            'ffprobe.binaries' => '/usr/bin/ffprobe',//$this->config['ffprobe'],
+            'timeout'          => 360000, // The timeout for the underlying process
+            'ffmpeg.threads'   => 16   // The number of threads that FFMpeg should use
+        ));  
+
+        $video = $ffmpeg->open( $videofile );
+        
+        if(is_dir($this->TMP_DIR) && is_writable($this->TMP_DIR)){
+            // generate a thumbnail image
+            $video
+                ->frame(FFMpeg\Coordinate\TimeCode::fromSeconds(round($duration/2)))
+                ->save( $this->TMP_DIR . '/still-' . $name . '.jpg');
+            // move thumbnail to moodle
+            $fs = get_file_storage();
+            $file_record = array(
+                'contextid'=>$this->context->id, 
+                'component'=>'mod_videofile', 
+                'filearea'=>'video',
+                'itemid'=>0, 
+                'filepath'=>'/', 
+                'filename'=> 'still-' . $name . '.jpg',
+                'timecreated'=>time(), 
+                'timemodified'=>time()
+            );
+            $fs->create_file_from_pathname($file_record, $this->TMP_DIR . '/still-' . $name . '.jpg');
+            $posters = $fs->get_area_files($this->context->id,
+                                   'mod_videofile',
+                                   'poster',
+                                   false,
+                                   'itemid, filepath, filename',
+                                   false);
+
+            foreach ($posters as $file) {
+                $poster_url = $this->util_get_file_url($file);
+            }
+            
+            return poster_url;
+            
+            /*    
+            // generate gif animation
+            $video 
+                ->gif(FFMpeg\Coordinate\TimeCode::fromSeconds(0), new FFMpeg\Coordinate\Dimension(320, 240), 10)
+                ->save( $this->TMP_DIR . '/still-' . $name . '_comp.gif');
+            $this->send_message('img-ani', 'animation', 100);
+    
+            // generate preview images per minute
+            for($i=0; $i < $duration; $i++){
+                $video
+                    ->frame(FFMpeg\Coordinate\TimeCode::fromSeconds($i))
+                    ->save( $this->TMP_DIR . '/preview-' . $name . '-' . $i . '.jpg' );
+                 $this->send_message('img', 'preview', round( ($i / $duration) * 100));    
+            }
+            $this->send_message('img', 'preview', 100);    
+            */
+        }else{
+            return $this->TMP_DIR . ' does not exist or is not writable';
+        }
     }
 
     /**
